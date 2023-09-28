@@ -124,7 +124,7 @@ module.exports = {
         .addSubcommand(subcommand =>
             subcommand
                 .setName('cafe')
-                .setDescription('Get the menu of one of the UCSC caffes')
+                .setDescription('Get the menu of one of the UCSC cafes')
                 .addStringOption(option =>
                     option.setName('location')
                     .setDescription('Which cafe to get the menu of')
