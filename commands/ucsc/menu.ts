@@ -14,12 +14,12 @@ const MEALS = ['Breakfast', 'Lunch', 'Dinner', 'Late Night'];
 //-------------------------------------------------------------------------------------------------
 
 const CAFE_URLS : Record<string,string> = {
-    'Oakes Cafe': '23&locationName=Oakes+Cafe&naFlag=1',
-    'Global Village Cafe': '46&locationName=Global+Village+Cafe&naFlag=1',
-    'UCen Coffee Bar': '45&locationName=UCen+Coffee+Bar&naFlag=1',
-    'Stevenson Coffee House': '26&locationName=Stevenson+Coffee+House&naFlag=1',
-    'Porter Market': '50&locationName=Porter+Market&naFlag=1',
-    'Perk Coffee Bars': '22&locationName=Perk+Coffee+Bars&naFlag=1',
+    'Oakes Cafe': '23',
+    'Global Village Cafe': '46',
+    'UCen Coffee Bar': '45',
+    'Stevenson Coffee House': '26',
+    'Porter Market': '50',
+    'Perk Coffee Bars': '22',
 }
 
 const DIVIDERS = ['-- Soups --', '-- Breakfast --', '-- Grill --', '-- Entrees --', '-- Pizza --', '-- Clean Plate --', '-- DH Baked --', '-- Bakery --', '-- Open Bars --', '-- All Day --', '-- Miscellaneous --', '-- Grab & Go --', '-- Smoothies --', '-- Coffee & Tea Now City of Santa Cruz Cup Fee of $.025 BYO and save up to $0.50 when ordering a togo drink --', '-- Daily --', '-- UCEN COMM --', '-- Bagels --', '-- Commissary --', '-- Brunch --'];

@@ -4,7 +4,7 @@
         "outDir": "out",
         "strict": true,
         "target": "ES2022",
-        "noEmit": true,
-        "allowImportingTsExtensions": true,
+        //"noEmit": true,
+        //"allowImportingTsExtensions": true,
     },
 }

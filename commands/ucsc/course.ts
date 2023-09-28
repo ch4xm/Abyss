@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction, AutocompleteInteraction, Colors, ColorResolvable } from 'discord.js';
-import * as pisa from '../../pisa.ts';
-import { SearchParameters } from '../../pisa.ts';
+import * as pisa from '../../pisa';
+import { SearchParameters } from '../../pisa';
 
 import fs from 'fs';
 
