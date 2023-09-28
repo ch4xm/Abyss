@@ -5,7 +5,7 @@ const LOCATION_NUMS : Record<string,string> = {
 	'Crown/Merrill': "20",
 	'Nine/Ten': "40",
 	'Porter/Kresge': "25",
-    // 'Rachel Carson/Oakes': "3",
+    'Rachel Carson/Oakes': "30",
 }
 const MEAL_URL = "&mealName=";
 

@@ -1,8 +1,30 @@
-import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction, AutocompleteInteraction, Colors } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction, AutocompleteInteraction, Colors, ColorResolvable } from 'discord.js';
 import * as pisa from '../../pisa.ts';
 import { SearchParameters } from '../../pisa.ts';
 
 import fs from 'fs';
+
+type StatusCode = {
+    symbol: string,
+    color: ColorResolvable,
+}
+
+let STATUS_CODES: Record<string, StatusCode> = {
+    'Open': 
+    {
+        'symbol': '🟢 ',
+        'color': Colors.Green,
+    },
+    'Wait List': 
+    { 
+        'symbol': '🟡 ',
+        'color': Colors.Yellow,
+    },
+    'Closed': {
+        'symbol': '🔴 ',
+        'color': Colors.Red,
+    }
+}
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -73,7 +95,26 @@ module.exports = {
             .addBooleanOption(option =>
                 option.setName('in_person')
                 .setDescription('Show online courses (default true)')
-                .setRequired(false))),
+                .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand.setName('info')
+                .setDescription('Get information about a specific course')
+                .addStringOption(option =>
+                    option.setName('quarter')
+                    .setDescription('The quarter to search for courses in')
+                    .addChoices(
+                        { name: "Fall", value: pisa.ENUMS.FALL },
+                        { name: "Winter", value: pisa.ENUMS.WINTER },
+                        { name: "Spring", value: pisa.ENUMS.SPRING },
+                        { name: "Summer", value: pisa.ENUMS.SUMMER })
+                    .setRequired(true))
+                .addStringOption(option =>
+                    option.setName('year')
+                    .setDescription('The year to search for courses in')
+                    )
+                .addStringOption(input =>
+                    input.setName('subject')
+                    .setDescription('The subject of the course'))),
 
         async execute(interaction: ChatInputCommandInteraction) {
             if (interaction.options.getSubcommand() === 'search') {
@@ -143,15 +184,20 @@ module.exports = {
                 fields.push({ name: 'Enrolled', value: course.enrolled ?? 'None', inline: true })
 
                 let name: string = course.name;
+                let color: ColorResolvable = Colors.White;
 
-                for (let status in pisa.STATUS_CODES) {
-                    name = name.replace(status, pisa.STATUS_CODES[status]);
+                for (let status in STATUS_CODES) {
+                    if (name.includes(status)) {
+                        name = name.replace(status, STATUS_CODES[status]['symbol']);
+                        color = STATUS_CODES[status]['color'];
+                    }
                 };
 
                 let embed: EmbedBuilder = new EmbedBuilder()
                     .setTitle(name + ' (' + course.class_number + ')\t' + course.instructor)
                     .addFields(fields)
                     .setURL(course.url)
+                    .setColor(color);
 
                 embeds.push(embed);
             }

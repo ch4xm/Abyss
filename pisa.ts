@@ -2,6 +2,7 @@ import axios from "axios";
 import { JSDOM } from "jsdom";
 import fs from "fs";
 import * as xpath from 'xpath';
+import { ColorResolvable } from "discord.js";
 
 const URL: string = 'https://pisa.ucsc.edu/class_search/index.php';
 
@@ -126,12 +127,6 @@ type Course = {
     enrolled: string,
     //instruction_mode: string,
     //url: string,
-}
-
-let STATUS_CODES: Record<string, string> = {
-    'Open': '🟢 ',
-    'Wait List': '🟡 ',
-    'Closed': '🔴 ',
 }
 
 let DEFAULT_PARAMETERS: SearchParameters = {
@@ -264,4 +259,5 @@ function yearQuarterToTermCode(quarter: string, year: string = '') {
     return code;
 }
 
-export { getSearchCourseHTML, getCourseInfo, URL, ENUMS, GE_CODES, DEFAULT_PARAMETERS, SearchParameters, Course, STATUS_CODES, getCoursesFromHtml, yearQuarterToTermCode, parametersToPostData, getCoursePageHTML, getElementByXpath};
+export { getSearchCourseHTML, getCourseInfo, URL, ENUMS, GE_CODES, DEFAULT_PARAMETERS, SearchParameters, Course, getCoursesFromHtml, yearQuarterToTermCode, parametersToPostData, getCoursePageHTML, getElementByXpath};
+
