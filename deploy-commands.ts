@@ -2,7 +2,9 @@
 // Seperate file cause we don't need to sync commands every time bot starts up
 // Credits to discord.js docs
 
-import {REST, RESTPutAPIApplicationCommandsResult, Routes} from 'discord.js';
+import { REST, RESTPutAPIApplicationCommandsResult, Routes } from 'discord.js';
+import { ApplicationIntegrationType, InteractionContextType } from 'discord-api-types/v10'
+
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
@@ -10,7 +12,7 @@ import path from 'path';
 
 dotenv.config();
 
-let commands : string[] = [];
+let commands : any[] = [];
 // Grab all the command files from the commands directory you created earlier
 let foldersPath : string = path.join(__dirname, 'commands');
 let commandFolders : string[] = fs.readdirSync(foldersPath);
@@ -37,8 +39,13 @@ rest.on("restDebug", console.log);
 	try {
 		console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
+		commands.forEach(command => {
+			command.integration_types = [ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall],
+            command.contexts = [InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel]
+		})
+		
 		// The put method is used to fully refresh all commands in the guild with the current set
-		let data = await rest.put(
+		const data = await rest.put(
 			Routes.applicationCommands(process.env.clientId!),
 			{ body: commands },
 		) as RESTPutAPIApplicationCommandsResult;
