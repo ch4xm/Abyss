@@ -49,7 +49,6 @@ rest.on("restDebug", console.log);
 			Routes.applicationCommands(process.env.clientId!),
 			{ body: commands },
 		) as RESTPutAPIApplicationCommandsResult;
-
 		console.log(`Successfully reloaded ${data.length} application (/) commands.`);
 	}
 	catch (error) {

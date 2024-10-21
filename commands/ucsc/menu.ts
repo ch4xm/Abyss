@@ -22,6 +22,22 @@ const CAFE_URLS : Record<string,string> = {
     'Perk Coffee Bars': '22',
 }
 
+const EMOJI_MAPPINGS: { [key: string]: string } = {
+    'veggie': '1297832632511369247',
+    'eggs': '1297832618792062988',
+    'gluten': '1297832609388433418',
+    'soy': '1297832597669548053',
+    'milk': '1297832586726604810',
+    'alcohol': '1297832575829676093',
+    'vegan': '1297832564425490446',
+    'treenut': '1297832554426142721',
+    'pork': '1297832543952961638',
+    'shellfish': '1297832519865077761',
+    'sesame': '1297832354634666036',
+    'halal': '1297832343293399092',
+    'beef': '1297832327283478528'
+};
+
 const DIVIDERS = ['-- Soups --', '-- Breakfast --', '-- Grill --', '-- Entrees --', '-- Pizza --', '-- Clean Plate --', '-- DH Baked --', '-- Bakery --', '-- Open Bars --', '-- All Day --', '-- Miscellaneous --', '-- Grab & Go --', '-- Smoothies --', '-- Coffee & Tea Now City of Santa Cruz Cup Fee of $.025 BYO and save up to $0.50 when ordering a togo drink --', '-- Daily --', '-- UCEN COMM --', '-- Bagels --', '-- Commissary --', '-- Brunch --'];
 // strings corresponding to the dividers, will be used to determine menu validity
 // (eg if cereal is first divider found, then the dh is not open for that meal)
@@ -50,8 +66,6 @@ async function get_site_with_cookie(url : string, location_url : string){
         'WebInaCartQtys': '',
         'WebInaCartRecipes': ''
     };
-    console.log(url);
-    console.log(location_url);
     return await axios.get(url, { 
         headers: {
             'Cookie': Object.entries(cookies).map(c => c.join('=')).join('; ')
@@ -62,6 +76,21 @@ async function get_site_with_cookie(url : string, location_url : string){
     console.error(error);
         return error;
     });
+}
+
+function getCurrentMealName() {
+    const pacificTime = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
+    const pacificDate = new Date(pacificTime);
+    const hourOfDay = pacificDate.getHours();
+    if (hourOfDay < 11) 
+        return 'Breakfast'
+    else if (hourOfDay < 14)
+        return 'Lunch'
+    else if (hourOfDay < 20)
+        return 'Dinner'
+    else {
+        return 'Late Night'
+    }
 }
 
 async function getMenu(location_url : string, full_url : string) {
@@ -78,7 +107,6 @@ async function getMenu(location_url : string, full_url : string) {
 		}
 			if (tr.querySelector('div.longmenucoldispname')) {
                 let price = tr.querySelector('div.longmenucolprice')?.textContent;
-                //console.log('price', price);
                 // If current tr has a food item
                 let food = tr.querySelector('div.longmenucoldispname').textContent;
                 food_items[food] = {
@@ -100,7 +128,7 @@ async function getMenu(location_url : string, full_url : string) {
 }
 
 async function getDiningHallMenu(dining_hall : string, meal : string, day_offset = 0) {
-    const offsetDate = new Date((new Date()).getTime() + day_offset * 60000);
+    const offsetDate = new Date((new Date()).getTime() + day_offset * 60 * 60 * 24 * 1000);
     let date : string = `&dtdate=${offsetDate.getMonth() + 1}%2F${offsetDate.getDate()}%2F${offsetDate.getFullYear().toString().substr(-2)}`;
 	let location_url : string = LOCATION_NUMS[dining_hall];
     let full_url : string = BASE_URL + location_url + MEAL_URL + meal + date;
@@ -144,11 +172,11 @@ module.exports = {
                     option.setName('meal')
                     .setDescription('Which meal (note that not all meals will be available for every location')
                     .addChoices(...MEALS.map(name => ({name, value: name})))
-                    .setRequired(true))
-                .addStringOption(option =>
+                    .setRequired(false))
+                .addIntegerOption(option =>
                     option.setName('day_offset')
                     .setDescription('How many days ahead to get the menu from. Default is 0 days (today)')
-                    .addChoices(...[...Array(19).keys()].map(num => ({name: String(num), value: String(num)})))
+                    .addChoices(...[...Array(19).keys()].map(num => ({name: String(num), value: num})))
                     .setRequired(false)
                 )
         ),
@@ -164,14 +192,20 @@ module.exports = {
             let msg = '';
             const location = interaction.options.getString("location")!;
             let food_items : Record<string, FoodItem | null> | null = null;
+
+            let embed = new EmbedBuilder();
+
             if(interaction.options.getSubcommand() === 'dining_hall') {
-                const meal = interaction.options.getString("meal")!;
-                food_items = await getDiningHallMenu(location, meal);
+                const meal = interaction.options.getString("meal") ?? getCurrentMealName();
+                const day_offset = interaction.options.getInteger('day_offset') ?? 0
+                embed.setTitle(`**${meal} menu for ${location}**`);
+
+                food_items = await getDiningHallMenu(location, meal, day_offset);
 
             } else if (interaction.options.getSubcommand() === 'cafe') {
                 food_items = await getCafeMenu(location);
             }
-            let embed = new EmbedBuilder().setTitle(`**Menu for ${location}**`);
+            
 
             if (food_items == null) {
                 embed
@@ -181,7 +215,6 @@ module.exports = {
                 return;
             }
             let result : string = '';
-            //console.log(food_items);
             for (let food of Object.keys(food_items)) {
                 if (food.includes('-- ')) { // if the food has a double dash which signifies its a divider then skip
                     if (food === ('-- Cereal --')){
@@ -189,12 +222,11 @@ module.exports = {
                     }
 
                     if (result.length != 0) {
-                        embed.addFields({name: result, value: msg, inline: false})
+                        embed.addFields({name: result, value: msg})
                     }
                     
                     result = '**'+food.split('--')[1].trim()+'**';
                     msg = '';
-                    //console.log(result, food);
                 } else {
                     
                     let food_str = food 
@@ -202,18 +234,16 @@ module.exports = {
                         food_str += ' \t-\t ' + food_items[food]?.price;
                     }
                     if ((food_str.length + msg.length) > 1024) {
-                        embed.addFields({name: result, value: msg, inline: false})
+                        embed.addFields({name: result, value: msg})
                         msg = ''
                         result = '　';
                     }
                     msg += food_str; 
-                    //console.log(food, food_items[food]?.price);
                     if (!foods.includes(food)) {
-                        console.log(food);
                         foods.push(food);
                     };	
                     for (let diet_restriction of food_items[food]?.restrictions || []) {
-                        //msg += ' ' +   EMOJIS[diet_restriction] + ' ';
+                        // msg += ' <:' + diet_restriction + ":" + EMOJI_MAPPINGS[diet_restriction] + '>';
                     }
                     msg += '\n';
                 }        
@@ -221,17 +251,8 @@ module.exports = {
             
             embed
 			.setColor(0x50C878)
-            .addFields({name: result, value: msg, inline: true});
-			//.setDescription(msg);
+            .addFields({name: result, value: msg});
             await interaction.reply({ embeds: [embed] });
-
-            /*
-            fs.writeFile('menu_items.txt', foods.join('\n').trim() + '\n', function(err) {
-                if (err) throw err;
-                foods = [];
-                //console.log(`Appended foods: \n${foods.join(', ')}\nto the text file.`);
-            });
-            */
 
             console.log(`User ${interaction.user.tag} used command ${interaction}`);
         },
