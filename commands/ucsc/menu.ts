@@ -183,11 +183,11 @@ module.exports = {
 
         async execute(interaction : ChatInputCommandInteraction) {
             let foods: string[] = [];
-            try {
-                foods = fs.readFileSync('menu_items.txt').toString().trim().split("\n"); 
-            } catch(error){
-                console.log('Error writing to file: ' + error);
-            }
+            // try {
+            //     foods = fs.readFileSync('menu_items.txt').toString().trim().split("\n"); 
+            // } catch(error){
+            //     console.log('Error writing to file: ' + error);
+            // }
 
             let msg = '';
             const location = interaction.options.getString("location")!;
